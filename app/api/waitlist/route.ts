@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Waitlist URL returned a web page instead of JSON. Use the Apps Script Web app URL ending in /exec (Deploy → Manage deployments), not the script editor link.",
+            "Waitlist URL returned HTML, not JSON. Fix APPS_SCRIPT_URL: open Apps Script → Deploy → Manage deployments → copy the Web app URL (must end in /exec). Do not use /dev (test-only; returns login HTML) or the script editor URL. Update Vercel env and redeploy.",
         },
         { status: 502 }
       )

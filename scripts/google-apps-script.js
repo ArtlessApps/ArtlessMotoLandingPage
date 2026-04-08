@@ -10,9 +10,12 @@
  * 6. Select type: Web app
  * 7. Set "Execute as" to "Me"
  * 8. Set "Who has access" to "Anyone"
- * 9. Click Deploy and copy the Web app URL
- * 10. Set APPS_SCRIPT_URL to that URL in .env.local (local) and in Vercel
- *     Project Settings → Environment Variables (production/preview)
+ * 9. Copy the Web app URL — it MUST look like:
+ *    https://script.google.com/macros/s/XXXXXXXX/exec
+ *    Get it from: Deploy → Manage deployments → your Web app → Copy URL (ends in /exec).
+ *    Do NOT use: script editor links, /dev URLs (those return HTML to servers), or Sheet URLs.
+ * 10. Paste that exact URL into APPS_SCRIPT_URL (.env.local and Vercel → Environment Variables).
+ *     Redeploy Vercel after changing env vars.
  */
 
 // Replace this with your actual Google Sheet ID
