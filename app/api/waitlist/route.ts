@@ -29,30 +29,66 @@ export async function POST(request: Request) {
   }
 
   try {
-    const res = await fetch(scriptUrl, {
+    const res = await fetch(scriptUrl.trim(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
+      cache: "no-store",
     })
 
     const text = await res.text()
+    const trimmed = text.trim()
+
+    // Wrong URL often returns Google's HTML sign-in / error page with status 200
+    if (trimmed.startsWith("<!") || trimmed.startsWith("<html")) {
+      return NextResponse.json(
+        {
+          error:
+            "Waitlist URL returned a web page instead of JSON. Use the Apps Script Web app URL ending in /exec (Deploy → Manage deployments), not the script editor link.",
+        },
+        { status: 502 }
+      )
+    }
+
     let parsed: { success?: boolean; error?: string } = {}
     try {
       parsed = JSON.parse(text) as { success?: boolean; error?: string }
     } catch {
-      /* Apps Script may return plain text on failure */
+      if (!res.ok) {
+        return NextResponse.json(
+          {
+            error: `Waitlist service error (${res.status}). Response was not JSON—check APPS_SCRIPT_URL in Vercel matches your latest Web app deployment.`,
+          },
+          { status: 502 }
+        )
+      }
+      return NextResponse.json(
+        {
+          error:
+            "Invalid response from waitlist service. Redeploy the Apps Script Web app and update APPS_SCRIPT_URL.",
+        },
+        { status: 502 }
+      )
     }
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: parsed.error || "Could not join waitlist." },
+        {
+          error:
+            parsed.error ||
+            `Waitlist service returned HTTP ${res.status}. In Apps Script: Deploy → Web app → set "Who has access" to Anyone (or redeploy a new version).`,
+        },
         { status: 502 }
       )
     }
 
     if (parsed.success === false) {
       return NextResponse.json(
-        { error: parsed.error || "Could not join waitlist." },
+        {
+          error:
+            parsed.error ||
+            "Could not save your email. Check the Sheet ID in the Apps Script project and that the sheet exists.",
+        },
         { status: 400 }
       )
     }

@@ -23,6 +23,11 @@ const SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE";
  */
 function doPost(e) {
   try {
+    if (!e.postData || !e.postData.contents) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: false, error: "Missing POST body (expected JSON with email)" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     // Parse the incoming JSON data
     const data = JSON.parse(e.postData.contents);
     const email = data.email;
@@ -33,8 +38,8 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    // Open the spreadsheet and get the first sheet
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
+    // Open the spreadsheet and use the first tab (reliable for headless runs)
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
     
     // Add the email and timestamp as a new row
     const timestamp = new Date().toISOString();
